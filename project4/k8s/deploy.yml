@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project4-deployment
+  namespace: project4
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: project4
+  template:
+    metadata:
+      labels:
+        app: project4
+    spec:
+      containers:
+        - name: project4
+          image: abintony/project4-1:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              value: mysql-service
+            - name: DB_NAME
+              value: complaintdb
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: project4-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: project4-secrets
+                  key: DB_PASSWORD
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  namespace: project4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: project4-secrets
+                  key: DB_PASSWORD
+            - name: MYSQL_DATABASE
+              value: complaintdb
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: project4-secrets
+                  key: DB_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: project4-secrets
+                  key: DB_PASSWORD
